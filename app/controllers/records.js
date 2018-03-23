@@ -1,39 +1,45 @@
 const Record = require('../models/record');
 
 exports.create = (req, res) => {
-  const record = new Record({ ...req.body });
+  const record = new Record(req.body);
   record.save();
 
-  res.send(record.toJSON());
+  res.json(record.toJSON());
 };
 
 exports.list = (req, res) => {
-  if (req.query.sort) {
-    res.send(Record.getSorted(req.query));
+  const { sort, sortBy, order, page } = req.query;
+  if (sort && page) {
+    Record.getSorted({ sort, sortBy, order });
+    res.json(Record.getPage(page).map(record => record.toJSON()));
+    return;
   }
-  if (req.query.page) {
-    res.send(Record.getPage(req.query.page));
+  if (sort) {
+    res.json(Record.getSorted({ sort, sortBy, order }).map(record => record.toJSON()));
+    return;
   }
-  if (!res.headersSent) {
-    res.send(Record.getAll());
+  if (page) {
+    res.json(Record.getPage(page).map(record => record.toJSON()));
+    return;
   }
+  res.json(Record.getAll().map(record => record.toJSON()));
 };
 
 exports.search = (req, res) => {
   if (!req.query.substring) {
     res.sendStatus(400);
   }
-  res.send(Record.searchByDescription(req.query.substring).toJSON());
+  res.json(Record.searchByDescription(req.query.substring).map(record => record.toJSON()));
 };
 
 exports.update = (req, res) => {
-  const id = req.query.id;
-  const update = req.body;
-  if (!(id && update)) {
+  const { id } = req.query;
+  const updatedProps = req.body;
+  if (!(id && updatedProps)) {
     res.sendStatus(400);
     return;
   }
-  const updated = Record.update(id, update);
+  const updated = Record.update(id, updatedProps).toJSON();
   if (!updated) {
     res.sendStatus(404);
     return;
@@ -41,7 +47,7 @@ exports.update = (req, res) => {
   if (updated.error) {
     res.sendStatus(400).send(updated.error);
   } else {
-    res.send(updated);
+    res.json(updated);
   }
 };
 
@@ -50,7 +56,8 @@ exports.move = (req, res) => {
     res.sendStatus(400);
     return;
   }
-  if (Record.move(req.query)) {
+  const { id, direction } = req.query;
+  if (Record.move({ id, direction })) {
     res.sendStatus(200);
   } else {
     res.sendStatus(404);

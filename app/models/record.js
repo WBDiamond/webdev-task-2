@@ -72,29 +72,29 @@ class Record {
     return storage.filter(record => record.description.indexOf(substring) !== -1);
   }
 
-  static update(id, update) {
+  static update(id, updatedProps) {
     const record = storage.find(element => element.id === id);
     if (!record) {
       return false;
     }
-    Object.keys(update).forEach((key) => {
+    Object.keys(updatedProps).forEach((prop) => {
       // eslint-disable-next-line no-prototype-builtins
-      if (!record.hasOwnProperty(key)) {
+      if (!record.hasOwnProperty(prop)) {
         if (!this.error) {
           this.error = [];
         }
-        this.error.append(`Record's ${id} property '${key}' doesn't exist`);
+        this.error.append(`Record's ${id} property '${prop}' doesn't exist`);
       }
-      if (!accessibleProperties.includes(key)) {
+      if (!accessibleProperties.includes(prop)) {
         if (!this.error) {
           this.error = [];
         }
-        this.error.append(`Record's ${id} property '${key}' is not accessible`);
+        this.error.append(`Record's ${id} property '${prop}' is not accessible`);
       }
-      if (key === 'isVisited') {
-        record[key] = update[key] === 'true';
+      if (prop === 'isVisited') {
+        record[prop] = updatedProps[prop] === 'true';
       } else {
-        record[key] = update[key];
+        record[prop] = updatedProps[prop];
       }
       return true;
     });
