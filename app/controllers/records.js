@@ -1,4 +1,5 @@
 const Record = require('../models/record');
+const { RECORD_NOT_FOUND, INVALID_INPUT_PARAMETERS } = require('../../config').errorMessages;
 
 exports.create = (req, res) => {
   const record = new Record(req.body);
@@ -27,7 +28,7 @@ exports.list = (req, res) => {
 
 exports.search = (req, res) => {
   if (!req.query.substring) {
-    res.sendStatus(400);
+    res.status(400).send(INVALID_INPUT_PARAMETERS);
   }
   res.json(Record.searchByDescription(req.query.substring).map(record => record.toJSON()));
 };
@@ -36,16 +37,16 @@ exports.update = (req, res) => {
   const { id } = req.query;
   const updatedProps = req.body;
   if (!(id && updatedProps)) {
-    res.sendStatus(400);
+    res.status(400).send(INVALID_INPUT_PARAMETERS);
     return;
   }
   const updated = Record.update(id, updatedProps).toJSON();
   if (!updated) {
-    res.sendStatus(404);
+    res.status(404).send(RECORD_NOT_FOUND);
     return;
   }
   if (updated.error) {
-    res.sendStatus(400).send(updated.error);
+    res.status(400).send(updated.error);
   } else {
     res.json(updated);
   }
@@ -53,14 +54,14 @@ exports.update = (req, res) => {
 
 exports.move = (req, res) => {
   if (!req.query) {
-    res.sendStatus(400);
+    res.status(400).send(INVALID_INPUT_PARAMETERS);
     return;
   }
   const { id, direction } = req.query;
   if (Record.move({ id, direction })) {
     res.sendStatus(200);
   } else {
-    res.sendStatus(404);
+    res.status(404).send(RECORD_NOT_FOUND);
   }
 };
 
@@ -70,13 +71,13 @@ exports.remove = (req, res) => {
     res.sendStatus(200);
     return;
   }
-  if (!req.body.id) {
-    res.sendStatus(400);
+  if (!req.body.ids) {
+    res.status(400).send(INVALID_INPUT_PARAMETERS);
     return;
   }
-  if (Record.delete(req.body.id)) {
+  if (Record.deleteChunk(req.body.ids)) {
     res.sendStatus(200);
   } else {
-    res.sendStatus(404);
+    res.status(404).send(RECORD_NOT_FOUND);
   }
 };

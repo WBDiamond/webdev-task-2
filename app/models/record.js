@@ -83,13 +83,15 @@ class Record {
         if (!this.error) {
           this.error = [];
         }
-        this.error.append(`Record's ${id} property '${prop}' doesn't exist`);
+        this.error.push(`Record's ${id} property '${prop}' doesn't exist`);
+        return false;
       }
       if (!accessibleProperties.includes(prop)) {
         if (!this.error) {
           this.error = [];
         }
-        this.error.append(`Record's ${id} property '${prop}' is not accessible`);
+        this.error.push(`Record's ${id} property '${prop}' is not accessible`);
+        return false;
       }
       if (prop === 'isVisited') {
         record[prop] = updatedProps[prop] === 'true';
@@ -110,6 +112,10 @@ class Record {
 
     storage.splice(recordIndex, 1);
     return true;
+  }
+
+  static deleteChunk(ids) {
+    return ids.every(id => this.delete(id));
   }
 
   static deleteAll() {
